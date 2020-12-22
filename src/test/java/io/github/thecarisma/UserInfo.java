@@ -44,6 +44,8 @@ public class UserInfo {
     boolean isHuman = true;
 
     @ExcelColumn(ignore = true)
+    long ignoreField;
+
     long barrenField;
 
     @ExcelColumn(columnName = "Location", converter = LocationConverter.class)
