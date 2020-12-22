@@ -10,14 +10,18 @@ import java.lang.annotation.Target;
  * @date 22-Dec-20 05:44 PM
  *
  * Order Of Prevalence
+ * - ignore
  * - columnNumber
  * - columnName
  * - columnNames
  * - Date Time Format
+ * - converter
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ExcelColumn {
+    boolean ignore() default false;
+
     int columnNumber() default -1;
 
     String columnName() default "";
@@ -26,5 +30,7 @@ public @interface ExcelColumn {
 
     char valueSeparator() default ' ';
 
-    String dateTimeFormat() default "";
+    String dateTimeFormat() default "dd-MM-yyyy hh:mm:ss";
+
+    Class<?> converter() default void.class;
 }

@@ -13,8 +13,8 @@ public class ExcelColumnTest {
 
     @Test
     public void testExcelColumn1() {
-        Sheet sheet = new Sheet();
-        Field[] fields = sheet.getClass().getDeclaredFields();
+        UserInfo userInfo = new UserInfo();
+        Field[] fields = userInfo.getClass().getDeclaredFields();
         for (Field field : fields) {
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             if (field.getName().equals("barrenField")) {
