@@ -1,9 +1,7 @@
 package io.github.thecarisma;
 
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
@@ -20,40 +18,54 @@ import java.util.*;
  */
 public class DocumentPojo {
     
-    // Excel 
-    public static <T> List<T> fromExcel(File excelFile, Class<T> type) throws IOException {
-        return fromExcel(excelFile, type, false);
-    }
+    // Excel
 
-    public static <T> List<T> fromExcel(File excelFile, Class<T> type, boolean noDuplicate) throws IOException {
-        if (excelFile.getName().endsWith(".xls") || excelFile.getName().endsWith(".xlsx")) {
-            return readXSSFData(new FileInputStream(excelFile), type, noDuplicate);
+    public static <T> List<T> fromExcel(File excelFile, Class<T> type) throws IOException {
+        if (excelFile.getName().endsWith(".xls")) {
+            return readHSSFData(new FileInputStream(excelFile), type);
+        } else if (excelFile.getName().endsWith(".xlsx")) {
+            return readXSSFData(new FileInputStream(excelFile), type);
         } else {
             throw new UnknownFileException("Invalid file extension (" + excelFile.getName() + "), expected .xls or .xlsx");
         }
     }
 
-    public static <T> List<T> fromExcel(InputStream excelInputStream,
-                                        Class<T> type, boolean noDuplicate) throws IOException {
-
-        return readXSSFData(excelInputStream, type, noDuplicate);
+    public static <T> List<T> fromExcel2003(InputStream excelInputStream, Class<T> type) throws IOException {
+        return readHSSFData(excelInputStream, type);
     }
 
-    public static <T> List<T> readXSSFData(InputStream excelInputStream,
-                                           Class<T> type, boolean noDuplicate) throws IOException {
+    public static <T> List<T> fromExcel(InputStream excelInputStream, Class<T> type) throws IOException {
+        return readXSSFData(excelInputStream, type);
+    }
+
+    public static <T> List<T> readHSSFData(InputStream excelInputStream, Class<T> type) throws IOException {
+        return readXSSFDataAllExcelFormat(excelInputStream, type, true);
+    }
+
+    public static <T> List<T> readXSSFData(InputStream excelInputStream, Class<T> type) throws IOException {
+        return readXSSFDataAllExcelFormat(excelInputStream, type, false);
+    }
+
+    private static <T> List<T> readXSSFDataAllExcelFormat(InputStream excelInputStream,
+                                           Class<T> type, boolean excel2003) throws IOException {
 
         Map<String, Integer> cellIndexes = new HashMap<>();
         List<T> rowsEntries = new ArrayList<>();
-        XSSFWorkbook wb = new XSSFWorkbook(excelInputStream);
+        Workbook wb;
+        if (excel2003) {
+            wb = new HSSFWorkbook(excelInputStream);
+        } else {
+            wb = new XSSFWorkbook(excelInputStream);
+        }
         for (int i = 0; i < wb.getNumberOfSheets(); ++i) {
-            XSSFSheet sheet = wb.getSheetAt(i);
-            XSSFRow row;
+            Sheet sheet = wb.getSheetAt(i);
+            Row row;
             int rowCount, r;
 
             for (r = 0; r < 1; r++) {
                 row = sheet.getRow(r);
                 for (int c = 0; c < row.getPhysicalNumberOfCells(); c++) {
-                    XSSFCell cell = row.getCell((short) c);
+                    Cell cell = row.getCell((short) c);
                     if (cell != null) {
                         cellIndexes.put(cell.getRichStringCellValue().toString().trim(), c);
                     }
@@ -67,7 +79,6 @@ public class DocumentPojo {
                         final T t = type.newInstance();
                         Map<Integer, String> valueMap = new HashMap<>();
                         for (int c = 0; c < row.getPhysicalNumberOfCells(); c++) {
-                            XSSFCell cell = row.getCell(c);
                             valueMap.put(c, new DataFormatter().formatCellValue(row.getCell(c)));
                         }
                         Arrays.stream(t.getClass().getDeclaredFields())
@@ -191,9 +202,6 @@ public class DocumentPojo {
                                     }
                                 });
                         });
-                        if (noDuplicate && rowsEntries.stream().anyMatch(o -> o.toString().equals(t.toString()))) {
-                            continue;
-                        }
                         rowsEntries.add(t);
                     } catch (InstantiationException | IllegalAccessException e) {
                         e.printStackTrace();

@@ -13,9 +13,21 @@ import java.util.List;
 public class DocumentPojoTest {
 
     @Test
-    public void testBasicExcelSheet1() throws IOException {
+    public void testBasicExcelSheetXlsx() throws IOException {
         InputStream stream = getClass().getResourceAsStream("/sample_sheet_1.xlsx");
-        List<UserInfo> userInfo = DocumentPojo.fromExcel(stream, UserInfo.class, true);
+        List<UserInfo> userInfos = DocumentPojo.fromExcel(stream, UserInfo.class);
+        for (UserInfo userInfo : userInfos) {
+            System.out.println(userInfo);
+        }
+    }
+
+    @Test
+    public void testBasicExcelSheetXls() throws IOException {
+        InputStream stream = getClass().getResourceAsStream("/sample_sheet_1.xls");
+        List<UserInfo> userInfos = DocumentPojo.fromExcel2003(stream, UserInfo.class);
+        for (UserInfo userInfo : userInfos) {
+            System.out.println(userInfo);
+        }
     }
 
 }
