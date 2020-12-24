@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
  * - columnNumber
  * - columnName
  * - columnNames
- * - Date Time Format
  * - converter
+ * - Date Time Format
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -33,4 +33,6 @@ public @interface ExcelColumn {
     String dateTimeFormat() default "dd-MM-yyyy hh:mm:ss";
 
     Class<?> converter() default void.class;
+
+    boolean failIfAbsent() default true;
 }

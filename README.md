@@ -6,7 +6,7 @@ Smart wrapper library for Apache POI to make managing Excel, and CSV fun for Jav
     <dependency>
         <groupId>com.github.thecarisma</groupId>
         <artifactId>gbadun-doc</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </dependency>
 </dependencies>
 

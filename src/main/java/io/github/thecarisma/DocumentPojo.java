@@ -85,47 +85,61 @@ public class DocumentPojo {
                         .forEach(field -> {
                             Arrays.stream(field.getAnnotationsByType(ExcelColumn.class))
                                 .forEach(column -> {
-                                    if (column.ignore()) {
-                                        return;
-                                    }
                                     StringBuilder value = null;
-                                    if (column.columnNumber() != -1) {
-                                        if (valueMap.get(column.columnNumber()) == null) {
-                                            throw new ExcelColumnNotFoundException("The column index '" +
-                                                    column.columnName() + "' is out of bound");
+                                    try {
+                                        if (column.ignore()) {
+                                            return;
                                         }
-                                        value = new StringBuilder(valueMap.get(column.columnNumber()));
+                                        if (column.columnNumber() != -1) {
+                                            if (valueMap.get(column.columnNumber()) == null) {
+                                                throw new ExcelColumnNotFoundException("The column index '" +
+                                                        column.columnName() + "' is out of bound");
+                                            }
+                                            value = new StringBuilder(valueMap.get(column.columnNumber()));
 
-                                    } else if (!column.columnName().isEmpty()) {
-                                        if (cellIndexes.get(column.columnName()) == null) {
-                                            throw new ExcelColumnNotFoundException("The column '" +
-                                                    column.columnName() + "' not found in the sheet");
-                                        }
-                                        value = new StringBuilder(valueMap.get(cellIndexes.get(column.columnName())));
-
-                                    } else if (column.columnNames().length > 0) {
-                                        value = new StringBuilder();
-                                        for (int index = 0; index < column.columnNames().length; ++index) {
-                                            String columnName = column.columnNames()[index];
-                                            if (cellIndexes.get(columnName) == null) {
+                                        } else if (!column.columnName().isEmpty()) {
+                                            if (cellIndexes.get(column.columnName()) == null) {
                                                 throw new ExcelColumnNotFoundException("The column '" +
                                                         column.columnName() + "' not found in the sheet");
                                             }
-                                            String columnValue = valueMap.get(cellIndexes.get(columnName));
-                                            if (columnValue != null) {
-                                                value.append(columnValue);
-                                                if (index < column.columnNames().length-1) {
-                                                    value.append(column.valueSeparator());
+                                            value = new StringBuilder(valueMap.get(cellIndexes.get(column.columnName())));
+
+                                        } else if (column.columnNames().length > 0) {
+                                            value = new StringBuilder();
+                                            for (int index = 0; index < column.columnNames().length; ++index) {
+                                                String columnName = column.columnNames()[index];
+                                                if (cellIndexes.get(columnName) == null) {
+                                                    throw new ExcelColumnNotFoundException("The column '" +
+                                                            column.columnName() + "' not found in the sheet");
+                                                }
+                                                String columnValue = valueMap.get(cellIndexes.get(columnName));
+                                                if (columnValue != null) {
+                                                    value.append(columnValue);
+                                                    if (index < column.columnNames().length - 1) {
+                                                        value.append(column.valueSeparator());
+                                                    }
                                                 }
                                             }
-                                        }
 
+                                        }
+                                    } catch (ExcelColumnNotFoundException e) {
+                                        if (!column.failIfAbsent()) {
+                                            return;
+                                        }
+                                        throw e;
                                     }
                                     if (value == null) {
                                         return;
                                     }
                                     try {
-                                        if (objectsAreSameType(Integer.class, field.getType()) ||
+                                        if (column.converter() != void.class) {
+
+                                            ExcelColumnConverter<?> excelColumnConverter =
+                                                    (ExcelColumnConverter<?>) column.converter().newInstance();
+                                            field.setAccessible(true);
+                                            field.set(t, excelColumnConverter.convertToFieldValue(value.toString()));
+
+                                        } else if (objectsAreSameType(Integer.class, field.getType()) ||
                                                 objectsAreSameType(int.class, field.getType())) {
 
                                             if (value.length() == 0) {
@@ -188,13 +202,6 @@ public class DocumentPojo {
                                                         Locale.ENGLISH).parse(value.toString());
                                                 field.set(t, date);
                                             }
-
-                                        } else if (column.converter() != void.class) {
-
-                                            ExcelColumnConverter<?> excelColumnConverter =
-                                                    (ExcelColumnConverter<?>) column.converter().newInstance();
-                                            field.setAccessible(true);
-                                            field.set(t, excelColumnConverter.convertToFieldValue(value.toString()));
 
                                         }
                                     } catch (IllegalAccessException | ParseException | InstantiationException e) {

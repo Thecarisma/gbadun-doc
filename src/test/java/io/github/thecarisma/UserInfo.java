@@ -19,6 +19,9 @@ public class UserInfo {
         }
     }
 
+    @ExcelColumn(columnName = "Firstname", converter = ExcelColumnToBoolean.class)
+    boolean hasFirstName;
+
     @ExcelColumn(columnNames = {"Firstname", "Middlename", "Lastname"}, valueSeparator = '-')
     String fullName;
 
@@ -48,13 +51,16 @@ public class UserInfo {
 
     long barrenField;
 
+    @ExcelColumn(columnName = "Super Powers", failIfAbsent = false)
+    String nonExist;
+
     @ExcelColumn(columnName = "Location", converter = LocationConverter.class)
     Location location;
 
     @Override
     public String toString() {
-        return String.format("[%s, %s, %s, %d, %s, %f, %s, %s]",
-                fullName, country, profession, age, dateAdded, amount, isHuman, location);
+        return String.format("[%s, %s, %s, %s, %d, %s, %f, %s, %s]",
+                hasFirstName, fullName, country, profession, age, dateAdded, amount, isHuman, location);
     }
 
     static class LocationConverter implements ExcelColumnConverter<Location> {
@@ -78,6 +84,18 @@ public class UserInfo {
                 location.latitude = parts[2].trim();
             }
             return location;
+        }
+    }
+
+    static class ExcelColumnToBoolean implements ExcelColumnConverter<Boolean> {
+        @Override
+        public String convertToCellValue(Boolean b) {
+            return null;
+        }
+
+        @Override
+        public Boolean convertToFieldValue(String s) {
+            return s != null;
         }
     }
 }
