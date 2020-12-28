@@ -95,14 +95,16 @@ public class DocumentPojo {
                                                 throw new ExcelColumnNotFoundException("The column index '" +
                                                         column.columnName() + "' is out of bound");
                                             }
-                                            value = new StringBuilder(valueMap.get(column.columnNumber()));
+                                            String tmpValue = valueMap.get(column.columnNumber());
+                                            value = new StringBuilder(tmpValue != null ? tmpValue : "");
 
                                         } else if (!column.columnName().isEmpty()) {
                                             if (cellIndexes.get(column.columnName()) == null) {
                                                 throw new ExcelColumnNotFoundException("The column '" +
                                                         column.columnName() + "' not found in the sheet");
                                             }
-                                            value = new StringBuilder(valueMap.get(cellIndexes.get(column.columnName())));
+                                            String tmpValue = valueMap.get(cellIndexes.get(column.columnName()));
+                                            value = new StringBuilder(tmpValue != null ? tmpValue : "");
 
                                         } else if (column.columnNames().length > 0) {
                                             value = new StringBuilder();

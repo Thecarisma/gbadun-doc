@@ -35,4 +35,15 @@ public @interface ExcelColumn {
     Class<?> converter() default void.class;
 
     boolean failIfAbsent() default true;
+
+    ExcelColumn.Access access() default ExcelColumn.Access.READ_WRITE;
+
+    enum Access {
+        READ_ONLY,
+        WRITE_ONLY,
+        READ_WRITE;
+
+        private Access() {
+        }
+    }
 }
